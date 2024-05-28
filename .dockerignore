@@ -1,5 +1,3 @@
 node_modules
 Dockerfile
-.env.local
 .env.development
-.env

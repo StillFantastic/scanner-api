@@ -26,6 +26,8 @@ RUN npm install
 
 COPY . .
 
+COPY .env /opt/.env
+
 EXPOSE 8081
 ENV PORT 8081
 ENV NODE_ENV production
