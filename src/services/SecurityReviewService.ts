@@ -14,13 +14,18 @@ export class SecurityReviewService {
   async reviewCode(context: string, files: FileModel[]): Promise<IssueModel[] | undefined> {
     const formattedFiles = files.map(file => `File: ${file.filename}\n${file.content}`).join("\n");
     const initialPrompt = `
-      Analyze the following Solidity smart contract files for security issues. For each issue you find, provide the following details:
+      ###Instruction###
+      Analyze the following Solidity smart contract files for security issues. 
+      Your audience is also a security expert.
+      
+      For each issue you find, provide the following details:
       1. The filename where the issue is found.
       2. The line number range where the issue is located.
       3. An issue title which can not exceeds 5 words.
       4. A detailed description of the issue.
       
-      Please return the result in JSON format with the following structure:
+      ###Example###
+      YOU MUST return the result in JSON format with the following structure:
       {
         "result": [
           {
@@ -38,6 +43,8 @@ export class SecurityReviewService {
         ],
       }
       
+      I'm going to tip $100 for a better review.
+      
       Don't do the following things:
       1. Use @audit tag
       2. Put content inside <>
@@ -49,7 +56,7 @@ export class SecurityReviewService {
       Here are the Solidity files:
       ${formattedFiles}
     `;
-    const MAX_TOKENS = 600;
+    const MAX_TOKENS = 2000;
     const model = "gpt-4o";
     const apiUrl = "https://api.openai.com/v1/chat/completions";
     let completeContent = "";
@@ -74,7 +81,7 @@ export class SecurityReviewService {
           model: model,
           messages: conversation_history,
           max_tokens: MAX_TOKENS,
-          temperature: 0.6,
+          temperature: 0,
           frequency_penalty: 1,
           response_format: {
             "type": "json_object",
@@ -95,7 +102,7 @@ export class SecurityReviewService {
         const result = JSON.parse(completeContent).result;
         stopGeneration = true;
         for (const issue of result) {
-          if (issue.line_range && !issue.line_range.includes("-")) {
+          if (issue.line_range != undefined && !issue.line_range.includes("-")) {
             issue.line_range = `${issue.line_range}-${issue.line_range}`;
           }
         }
