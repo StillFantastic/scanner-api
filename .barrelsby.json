@@ -5,5 +5,5 @@
     "__mocks__",
     ".spec.ts"
   ],
-  "delete": false
+  "delete": true
 }
